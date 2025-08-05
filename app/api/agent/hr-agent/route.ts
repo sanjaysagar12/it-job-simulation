@@ -1,6 +1,6 @@
 // filepath: /home/sagar/it-job-simulation/pages/api/gemini-test.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { GeminiAI } from '../../global/agent';
+import { GeminiAI } from '../../../global/agent';
 
 export async function POST(req: NextRequest) {
     try {
