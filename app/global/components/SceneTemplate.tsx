@@ -35,7 +35,7 @@ function SceneTemplate({
       <div className="h-screen bg-gray-100 flex flex-col relative">
         {/* Mail Icon Button (top right) */}
         <button
-          className="fixed top-6 right-8 z-50 bg-blue-600 text-white rounded-full p-4 shadow-lg hover:bg-blue-700 transition-colors duration-300"
+          className="fixed top-6 right-8 z-50 rounded-full text-black shadow-lg "
           onClick={() => setIsDrawerOpen(!isDrawerOpen)}
           aria-label={isDrawerOpen ? "Close Mail" : "Open Mail"}
         >
