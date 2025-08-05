@@ -31,8 +31,15 @@ export type SceneTemplateProps = {
 
 
 
-function getGlobalRepoUrl() {
-  return "";
+async function getGlobalRepoUrl() {
+  try {
+    const response = await fetch('/api/github');
+    const data = await response.json();
+    return data.githuburl || "";
+  } catch (error) {
+    console.error('Failed to fetch GitHub URL:', error);
+    return "";
+  }
 }
 
 function saveGlobalRepoUrl(url: string) {
@@ -57,7 +64,7 @@ function SceneTemplate({
     inputFields.forEach(f => { obj[f.name] = ""; });
     return obj;
   });
-  const [githubUrl, setGithubUrl] = useState<string>(() => getGlobalRepoUrl());
+  const [githubUrl, setGithubUrl] = useState<string>("");
   const [mailConvo, setMailConvo] = useState<any[]>(initialMailConvo);
   const [allCorrect, setAllCorrect] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,11 +73,14 @@ function SceneTemplate({
 
   // Sync githubUrl and savedUrl with localStorage on mount and sceneId change
   useEffect(() => {
-    const url = getGlobalRepoUrl();
-    if (url) {
-      setGithubUrl(url);
-      setIsEditingUrl(false);
-    }
+    const fetchUrl = async () => {
+      const url = await getGlobalRepoUrl();
+      if (url) {
+        setGithubUrl(url);
+        setIsEditingUrl(false);
+      }
+    };
+    fetchUrl();
   }, [sceneId]);
 
   const handleComplete = () => setShowTask(true);
