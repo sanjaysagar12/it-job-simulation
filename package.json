@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "lucide-react": "^0.536.0",
+    "marked": "^16.1.2",
     "next": "15.4.4",
     "react": "19.1.0",
     "react-dom": "19.1.0"
