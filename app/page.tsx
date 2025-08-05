@@ -46,9 +46,86 @@ HR Team`,
 
 function HomePage() {
     const [mailConvo, setMailConvo] = useState<Message[]>(initialMailConvo);
+    const [formData, setFormData] = useState({
+        comments: ""
+    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const addNewMail = (newMail: Message) => {
         setMailConvo(prev => [...prev, newMail]);
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleFormSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        
+        try {
+            console.log("Form Data Submitted:", formData);
+            
+            // Send form data to HR agent for evaluation
+            const response = await fetch('/api/agent/hr-agent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userPrompt: `Here is my onboarding form submission:
+                    
+Comments/Questions: ${formData.comments || 'No additional comments'}
+
+Please review my submission and let me know if everything looks good or if I need to provide any additional information.`
+                })
+            });
+
+            const aiResponse = await response.json();
+            console.log("AI Response:", aiResponse.convo);
+            
+            // Create mail based on AI response
+            const newMail: Message = {
+                id: Date.now(),
+                sender: "sarah.mitchell@velsymedia.com",
+                senderName: "Sarah Mitchell (HR)",
+                recipient: "you@velsymedia.com",
+                recipientName: "You",
+                timestamp: new Date().toLocaleDateString(),
+                body: aiResponse.convo,
+                attachments: [],
+                isFromMe: false,
+            };
+            
+            addNewMail(newMail);
+            
+            // Log the evaluation result
+            console.log("HR Evaluation Result:", aiResponse.result ? "APPROVED" : "NEEDS IMPROVEMENT");
+            console.log("AI Response:", aiResponse.convo);
+            
+        } catch (error) {
+            console.error("Error submitting form:", error);
+            
+            // Add error mail
+            const errorMail: Message = {
+                id: Date.now(),
+                sender: "system@velsymedia.com",
+                senderName: "System",
+                recipient: "you@velsymedia.com",
+                recipientName: "You",
+                timestamp: new Date().toLocaleDateString(),
+                body: "There was an error processing your submission. Please try again later or contact IT support.",
+                attachments: [],
+                isFromMe: false,
+            };
+            addNewMail(errorMail);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleTaskComplete = () => {
@@ -81,19 +158,58 @@ Development Team Supervisor`,
             mailConversation={mailConvo}
             onAddMail={addNewMail}
         >
-            <div className="space-y-4">
+            <div className="space-y-6">
                 <p className="text-sm text-gray-700">
                     Welcome to your first day at VelsyMedia!
                 </p>
                 <p className="text-sm text-gray-600">
                     Check your mail for further instructions and updates from the HR team.
                 </p>
-                <button
-                    onClick={handleTaskComplete}
-                    className="inline-flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                    <span>Complete Task</span>
-                </button>
+
+                {/* Onboarding Form */}
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Onboarding Information</h3>
+
+                    <div>
+                        <label htmlFor="comments" className="block text-sm font-medium text-gray-700 mb-1">
+                            Comments or Questions for HR
+                        </label>
+                        <textarea
+                            id="comments"
+                            name="comments"
+                            value={formData.comments}
+                            onChange={handleInputChange}
+                            rows={4}
+                            className="w-full text-black px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Any questions about the onboarding process, company policies, or anything else you'd like to know..."
+                        />
+                    </div>
+
+                    <div className="flex space-x-3">
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Submitting...
+                                </>
+                            ) : (
+                                "Submit to HR"
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleTaskComplete}
+                            className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        >
+                            Complete Task
+                        </button>
+                    </div>
+                </form>
             </div>
         </SceneTemplate>
     );
